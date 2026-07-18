@@ -1,65 +1,43 @@
-import Image from "next/image";
+// GUIDE: `app/page.tsx` is a Next.js special file — putting a `page.tsx`
+// directly inside `app/` makes it the component rendered at `/`. There's
+// no separate router config to touch; the file's *location* in `app/` is
+// the route. Docs: node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/page.md
+//
+// Since this is a single scrollable page, "routing" is basically done: one
+// page.tsx, composed of section components that live in `_components/`
+// (underscore-prefixed = private folder, opted out of routing — see the
+// guide comment in `_lib/data.ts`). Each section is its own file so it's
+// easy to find, edit, and eventually make interactive independently.
+//
+// This file (and every section it renders) is a Server Component by
+// default — no "use client" directive anywhere yet. That's the right
+// starting point: it means zero extra JS shipped to the browser for a page
+// that's currently just text and links. Only reach for "use client" on the
+// specific component that needs it (state, effects, event handlers, browser
+// APIs) — see the note at the top of Nav.tsx for a concrete example of when
+// that'll happen. Docs: node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md
+
+import Nav from "@/app/_components/Nav";
+import Hero from "@/app/_components/Hero";
+import About from "@/app/_components/About";
+import Skills from "@/app/_components/Skills";
+import Projects from "@/app/_components/Projects";
+import Experience from "@/app/_components/Experience";
+import Contact from "@/app/_components/Contact";
+import Footer from "@/app/_components/Footer";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <>
+      <Nav />
+      <main className="flex flex-col">
+        <Hero />
+        <Skills />
+        <Projects />
+        <Experience />
+        <Contact />
       </main>
-    </div>
+      <Footer />
+    </>
   );
 }

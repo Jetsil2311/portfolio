@@ -10,6 +10,13 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* single source of truth for the brand glow color used across Hero,
+     SectionHeader, and Projects — matches Hero's existing h1 text-shadow
+     (rgba(168, 85, 247, ...)) exactly, just given a semantic name so it's
+     reusable as bg-accent / text-accent / border-accent / shadow-accent /
+     text-shadow-accent, with Tailwind's opacity modifiers (/40, /70, ...)
+     working on all of them for free. */
+  --color-accent: #a855f7;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +30,76 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* the Skills marquee track (see .carousel-container below) is
+     intentionally wider than the viewport — clip that at the page level
+     instead of on the row itself, so nothing near the pills' glow/shadow
+     effects has an overflow rule that could clip them too */
+  /* `clip`, not `hidden` — `hidden` on only one axis forces the browser to
+     compute the *other* axis (overflow-y, left at its default `visible`
+     here) as `auto`, which turns body into its own independent scrolling
+     box nested inside the page's real scrollbar. `clip` is exempt from
+     that forced pairing, so it clips horizontally without creating a
+     second scroll container. */
+  overflow-x: clip;
+}
+
+/* GUIDE: makes the anchor jumps from Nav.tsx (#hero, #about, ...) glide
+   instead of snapping instantly. Plain CSS, no JS/library needed. */
+html {
+  /* Needed *in addition to* body's overflow-x above — on mobile, the
+     marquee's real (intentionally viewport-wide) content forces the
+     browser to inflate the whole layout viewport and zoom the page out,
+     even though body already clips it visually. Chrome/Safari only stop
+     that expansion when overflow-x is also constrained on the root <html>
+     element itself, not just body. `clip` here for the same reason as
+     body's above — see that comment. */
+  overflow-x: clip;
+  scroll-behavior: smooth;
+}
+
+/* GUIDE: endless sideways-scrolling carousel for Skills.tsx. The track
+   renders each skill list 6x back-to-back (see SKILL_TRACK_REPEAT in
+   Skills.tsx) and slides left by exactly one copy's width (-100%/6), so
+   the moment it "resets" the next copy is already sitting where the
+   first one started — the loop reads as continuous instead of snapping.
+   6 copies (rather than the usual 2) keeps the track wider than the
+   viewport even on ultra-wide screens now that the carousel spans the
+   full screen width, so there's never a blank gap after the last pill.
+   Pure CSS, keeps Skills.tsx a Server Component. */
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% / 6));
+  }
+}
+
+@keyframes scroll-opposite {
+  from {
+    transform: translateX(calc(-100% / 6));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* direction is driven by the --skill-direction custom property set via
+   odd:/even: on the row wrapper in Skills.tsx (see guide comment there) —
+   custom properties inherit down the DOM, so this ul just reads it */
+.animate-scroll {
+  animation: var(--skill-direction, scroll) 25s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
+
+/* no overflow rule here on purpose — clipping is handled once, globally,
+   on body above. Pairing overflow-x: hidden with overflow-y: visible on
+   this element doesn't work: per spec it makes overflow-y compute as
+   auto instead, which still clips box-shadow/glow at this box's edges. */
+.carousel-container {
+  overflow-x: visible;
+  overflow-y: visible;
 }
