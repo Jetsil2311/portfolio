@@ -1,105 +1,200 @@
 @import "tailwindcss";
 
+/* GUIDE: the whole palette lives here as semantic tokens. Components only
+   ever use the Tailwind classes these generate (bg-canvas, text-ink,
+   text-muted, border-line, bg-accent, text-on-accent, ...), never raw colors.
+
+   Each token holds both modes via `light-dark(<light>, <dark>)`, which
+   resolves against the element's `color-scheme`. So switching themes is a
+   single property:
+   - no `data-theme` on <html> (JS disabled): follow the OS setting
+   - `data-theme="light"` / `"dark"`: set by the inline script in layout.tsx
+     (stored choice, else the OS setting) and flipped by ThemeToggle.tsx.
+   The `dark:` variant is keyed to the same attribute (see @custom-variant).
+
+   Material rules used across the page:
+   - Glass (`glass`, `glass-strong`) is only for things that float over other
+     content (nav, hero info card, project caption panels, the stack panel).
+     Glass over an empty background is just a grey box, so plain surfaces use
+     `border-line` instead.
+   - Radius scale: interactive controls + chips are pills (rounded-full),
+     images and inner panels are rounded-2xl, outer cards are rounded-3xl.
+   - Z-index scale: page content 0-20 (inside an isolated hero), nav 40,
+     skip link 50. */
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  /* single source of truth for the brand glow color used across Hero,
-     SectionHeader, and Projects — matches Hero's existing h1 text-shadow
-     (rgba(168, 85, 247, ...)) exactly, just given a semantic name so it's
-     reusable as bg-accent / text-accent / border-accent / shadow-accent /
-     text-shadow-accent, with Tailwind's opacity modifiers (/40, /70, ...)
-     working on all of them for free. */
-  --color-accent: #a855f7;
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root {
+  --canvas: light-dark(oklch(0.975 0.004 70), oklch(0.16 0.005 60));
+  --surface: light-dark(oklch(0.945 0.005 70), oklch(0.2 0.006 60));
+  --ink: light-dark(oklch(0.2 0.008 60), oklch(0.955 0.004 70));
+  --muted: light-dark(oklch(0.44 0.01 60), oklch(0.74 0.008 70));
+  --subtle: light-dark(oklch(0.52 0.01 60), oklch(0.63 0.008 70));
+  --line: light-dark(oklch(0.2 0.008 60 / 0.1), oklch(1 0 0 / 0.09));
+
+  --glass: light-dark(oklch(0.99 0.003 70 / 0.6), oklch(0.24 0.008 60 / 0.6));
+  --glass-strong: light-dark(
+    oklch(0.96 0.006 70 / 0.55),
+    oklch(0.2 0.008 60 / 0.55)
+  );
+  --glass-edge: light-dark(oklch(1 0 0 / 0.7), oklch(1 0 0 / 0.12));
+  --glass-highlight: light-dark(oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.14));
+  --shadow-tint: light-dark(oklch(0.35 0.03 50 / 0.22), oklch(0 0 0 / 0.55));
+
+  /* accent = fills (buttons, markers). on-accent = text sitting on an
+     accent fill. accent-ink = accent-colored text on the canvas, darker in
+     light mode so it still passes contrast. */
+  --accent: light-dark(oklch(0.7 0.18 45), oklch(0.75 0.17 48));
+  --on-accent: oklch(0.18 0.03 42);
+  --accent-ink: light-dark(oklch(0.5 0.16 40), oklch(0.8 0.14 52));
+
+  /* Glass "tone": a brightness shift applied to whatever is *behind* a
+     glass pane. Light glass lifts the backdrop, dark glass dims it, so a
+     fairly transparent pane still reads cleanly over both bright and dark
+     screenshots. A filter isn't a color, so light-dark() can't hold it;
+     it's switched with the theme attribute instead. */
+  --glass-tone: brightness(1.12);
+}
+
+:root[data-theme="dark"] {
+  --glass-tone: brightness(0.6);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme]) {
+    --glass-tone: brightness(0.6);
+  }
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-glass-edge: var(--glass-edge);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-ink: var(--accent-ink);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --shadow-glass:
+    inset 0 1px 0 0 var(--glass-highlight), 0 24px 60px -24px var(--shadow-tint);
+  --shadow-lift: 0 30px 80px -30px var(--shadow-tint);
+  /* follows the alpha of transparent cutouts (the hero phone) */
+  --drop-shadow-float: 0 28px 32px var(--shadow-tint);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-rise: rise 0.9s var(--ease-out-expo) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* NOTE: only the standard `backdrop-filter` is written below. Tailwind's CSS
+   pipeline (Lightning CSS) adds the -webkit- prefix Safari needs on its own;
+   writing both by hand made it merge them into the prefixed one only, which
+   Chrome ignores, so the blur silently disappeared there.
+
+   Frosted glass (a web approximation, not Apple's Liquid Glass): translucent
+   fill + blur + saturation boost, a 1px light edge, and an inset top
+   highlight that reads as the lit edge of a pane. Falls back to a solid
+   surface when the OS asks for reduced transparency. */
+@utility glass {
+  background-color: var(--color-glass);
+  border: 1px solid var(--color-glass-edge);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(24px) saturate(160%) var(--glass-tone);
+
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--color-surface);
+    backdrop-filter: none;
+  }
+}
+
+/* For panels carrying body text over busy screenshots. Rather than a dense
+   fill (which reads as a flat white/black slab), it uses a heavy blur that
+   melts any detail behind it into soft color, plus the tone shift, so the
+   pane stays translucent and the text stays readable. Text inside these
+   panels uses `text-ink/…` (not muted/subtle) so it keeps its contrast
+   whatever color shows through. */
+@utility glass-strong {
+  background-color: var(--color-glass-strong);
+  border: 1px solid var(--color-glass-edge);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(40px) saturate(180%) var(--glass-tone);
+
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--color-surface);
+    backdrop-filter: none;
+  }
+}
+
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+}
+
+/* Theme switch crossfade (ThemeToggle.tsx wraps the change in a View
+   Transition). Slightly slower than the browser default so it reads as a
+   deliberate fade rather than a flicker. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+}
+
+/* Scroll reveal with zero JS: CSS scroll-driven animation. Browsers without
+   `animation-timeline` (and anyone who prefers reduced motion) simply see
+   the content in place. */
+@utility reveal {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+html {
+  /* the hero screenshots intentionally bleed off the right edge; clip (not
+     hidden) so no extra scroll container is created */
+  overflow-x: clip;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-  /* the Skills marquee track (see .carousel-container below) is
-     intentionally wider than the viewport — clip that at the page level
-     instead of on the row itself, so nothing near the pills' glow/shadow
-     effects has an overflow rule that could clip them too */
-  /* `clip`, not `hidden` — `hidden` on only one axis forces the browser to
-     compute the *other* axis (overflow-y, left at its default `visible`
-     here) as `auto`, which turns body into its own independent scrolling
-     box nested inside the page's real scrollbar. `clip` is exempt from
-     that forced pairing, so it clips horizontally without creating a
-     second scroll container. */
   overflow-x: clip;
-}
-
-/* GUIDE: makes the anchor jumps from Nav.tsx (#hero, #about, ...) glide
-   instead of snapping instantly. Plain CSS, no JS/library needed. */
-html {
-  /* Needed *in addition to* body's overflow-x above — on mobile, the
-     marquee's real (intentionally viewport-wide) content forces the
-     browser to inflate the whole layout viewport and zoom the page out,
-     even though body already clips it visually. Chrome/Safari only stop
-     that expansion when overflow-x is also constrained on the root <html>
-     element itself, not just body. `clip` here for the same reason as
-     body's above — see that comment. */
-  overflow-x: clip;
-  scroll-behavior: smooth;
-}
-
-/* GUIDE: endless sideways-scrolling carousel for Skills.tsx. The track
-   renders each skill list 6x back-to-back (see SKILL_TRACK_REPEAT in
-   Skills.tsx) and slides left by exactly one copy's width (-100%/6), so
-   the moment it "resets" the next copy is already sitting where the
-   first one started — the loop reads as continuous instead of snapping.
-   6 copies (rather than the usual 2) keeps the track wider than the
-   viewport even on ultra-wide screens now that the carousel spans the
-   full screen width, so there's never a blank gap after the last pill.
-   Pure CSS, keeps Skills.tsx a Server Component. */
-@keyframes scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(calc(-100% / 6));
-  }
-}
-
-@keyframes scroll-opposite {
-  from {
-    transform: translateX(calc(-100% / 6));
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-/* direction is driven by the --skill-direction custom property set via
-   odd:/even: on the row wrapper in Skills.tsx (see guide comment there) —
-   custom properties inherit down the DOM, so this ul just reads it */
-.animate-scroll {
-  animation: var(--skill-direction, scroll) 25s linear infinite;
-}
-
-.animate-scroll:hover {
-  animation-play-state: paused;
-}
-
-/* no overflow rule here on purpose — clipping is handled once, globally,
-   on body above. Pairing overflow-x: hidden with overflow-y: visible on
-   this element doesn't work: per spec it makes overflow-y compute as
-   auto instead, which still clips box-shadow/glow at this box's edges. */
-.carousel-container {
-  overflow-x: visible;
-  overflow-y: visible;
 }

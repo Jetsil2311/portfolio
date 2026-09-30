@@ -19,7 +19,6 @@
 
 import Nav from "@/app/_components/Nav";
 import Hero from "@/app/_components/Hero";
-import About from "@/app/_components/About";
 import Skills from "@/app/_components/Skills";
 import Projects from "@/app/_components/Projects";
 import Experience from "@/app/_components/Experience";
@@ -30,7 +29,7 @@ export default function Home() {
   return (
     <>
       <Nav />
-      <main className="flex flex-col">
+      <main id="main" className="flex flex-col">
         <Hero />
         <Skills />
         <Projects />

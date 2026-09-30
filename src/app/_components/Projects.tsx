@@ -1,271 +1,136 @@
-// GUIDE: Reads from the `projects` array in `_lib/data.ts`. Each project
-// gets a `next/image`-friendly slot if you add screenshots later, and plain
-// <a> tags for demo/repo links (external URLs — again, no next/link needed,
-// that component is only for internal route navigation).
+// GUIDE: Reads from the `projects` array in `_lib/data.ts`. Each card is the
+// screenshot itself, full-bleed, with a glass caption panel floating over its
+// lower edge: the screenshot's own colors blur through the panel, which is
+// the glass effect doing real work. Server Component: hover zoom and the
+// scroll reveal are plain CSS, so this ships no client JS.
 //
-// LEVEL UP: if this list ever gets long, this is a good place to learn
-// Suspense streaming — wrap this section in <Suspense> from "react" and
-// make Projects an `async` component that awaits real data (e.g. from a
-// CMS or your GitHub API) so the rest of the page can render immediately
-// while this section streams in. Docs: node_modules/next/dist/docs/01-app/01-getting-started/06-fetching-data.md
+// Layout is an asymmetric 12-column grid (7/5, then 5/7) so the four
+// projects don't read as a row of identical cards. It collapses to a single
+// column below `lg`.
+//
+// LEVEL UP: if this list ever gets long, wrap this section in <Suspense> and
+// make it an `async` component that awaits real data (a CMS or the GitHub
+// API). Docs: node_modules/next/dist/docs/01-app/01-getting-started/06-fetching-data.md
 
-"use client";
-
-import { useState } from "react";
 import Image from "next/image";
-
-import { projects } from "@/app/_lib/data";
-import { ArrowRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
-import { MdOpenInNew } from "react-icons/md";
-import { SectionHeader } from "./SectionHeader";
+import { projects } from "@/app/_lib/data";
 
-// Shared glow shadows, pulled out so the spots that use them (image frame,
-// icon buttons) stay in sync and the JSX below isn't repeating the same
-// arbitrary box-shadow value several times. Color comes from the
-// `--color-accent` theme token in globals.css — the same purple used for
-// Hero's glow — so this section reads as a continuation of Hero, not a
-// different palette.
-//
-// IMPORTANT: Tailwind generates CSS by scanning the literal text of source
-// files for class-shaped strings — it doesn't evaluate JS. So these consts
-// have to be the *complete* class, variant prefix included; something like
-// `` `group-hover:${IMAGE_GLOW}` `` would never appear as a real substring
-// anywhere in this file, so Tailwind would silently skip generating it.
-const IMAGE_GLOW = "shadow-[0_0_90px_20px_var(--color-accent)]/25";
-const ICON_GLOW = "group-hover:shadow-[0_0_20px_3px_var(--color-accent)]/35";
+// Column span per position; repeats every four projects. With an odd count
+// the last project would sit alone next to an empty cell, so it spans the
+// full row instead (and its caption panel is capped to a readable width).
+const SPANS = [
+  "lg:col-span-7",
+  "lg:col-span-5",
+  "lg:col-span-5",
+  "lg:col-span-7",
+];
 
-// Glass panel treatment reused for every translucent surface in this
-// section (image frame, project rows, pills, icon buttons) so they all
-// read as one consistent material instead of one-off styles per element.
-const GLASS =
-  "border border-white/10 bg-white/5 backdrop-blur-md";
+function spanFor(index: number, count: number) {
+  const isLoneLast = count % 2 === 1 && index === count - 1;
+  return isLoneLast ? "lg:col-span-12" : SPANS[index % SPANS.length];
+}
 
 export default function Projects() {
-  // `hoveredProject` drives which preview shows on the left. It has to be
-  // React state (not just CSS `:hover`) because hovering a row on the right
-  // needs to change what's rendered in a completely different part of the
-  // tree. Everything else below (arrow, colors, icon buttons) reacts to
-  // hover with plain Tailwind `group-hover:`, no state needed.
-  const [hoveredProject, setHoveredProject] = useState<string | null>(null);
-
   return (
     <section
       id="projects"
-      className="relative scroll-mt-16 px-6 py-24 sm:px-8"
+      aria-labelledby="projects-title"
+      className="scroll-mt-24 pt-28 pb-24 sm:pt-36 sm:pb-32"
     >
-      {/* Ambient glows — same recipe as Hero (color, opacity, blur), just
-          moved to the opposite corners so the two sections read as one
-          continuous background rather than a jarring repeat. */}
-      <div
-        className="pointer-events-none absolute -top-20 -left-20 h-150 w-150 rounded-full bg-orange-500 opacity-15 blur-[250px]"
-      />
-      <div
-        className="pointer-events-none absolute -right-20 -bottom-20 h-150 w-150 rounded-full bg-purple-600 opacity-15 blur-[200px]"
-      />
+      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+        <div className="max-w-2xl">
+          <h2
+            id="projects-title"
+            className="text-4xl font-semibold tracking-tighter text-balance text-ink sm:text-5xl"
+          >
+            Selected projects
+          </h2>
+          <p className="mt-4 max-w-[52ch] text-lg leading-relaxed text-pretty text-muted">
+            Client work and personal builds. I handle the whole thing, from
+            branding and UI to the database and deployment.
+          </p>
+        </div>
 
-      <div className="relative mx-auto grid max-w-6xl grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-14">
-        {/* Preview column: desktop only — every project is mounted at once,
-            stacked on top of each other, and crossfades via opacity/scale.
-            Swapping which one is *visible* (instead of filtering the array
-            down to just the hovered project) is what makes this smooth —
-            an element that's removed and re-added to the DOM can't
-            transition, only an element whose classes change can. */}
-        <div className="relative hidden lg:block lg:h-110">
-          {projects.map((project) => {
-            const isActive = project.id === hoveredProject;
-
+        <ul className="mt-14 grid grid-cols-1 gap-5 lg:grid-cols-12 lg:gap-6">
+          {projects.map((project, i) => {
+            const span = spanFor(i, projects.length);
             return (
-              <article
+              <li
                 key={project.id}
-                aria-hidden={!isActive}
-                className={`
-                  absolute inset-0
-                  transition-all duration-700 ease-in-out
-                  ${isActive ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}
-                `}
+                className={`reveal group relative isolate aspect-4/5 overflow-hidden rounded-3xl border border-line bg-surface sm:aspect-4/3 lg:aspect-auto lg:h-136 ${span}`}
               >
-                {/* Outer wrapper has no `overflow-hidden`, unlike the sharp
-                    image below it, on purpose — the blurred glow has to be
-                    allowed to spill past the image's own edges to read as
-                    ambient light instead of just a fuzzy border. */}
-                <div className="relative h-110 w-full">
-                  {/* Color glow: the same image again, scaled up and blurred
-                      into mush. Since it's literally the photo's own pixels,
-                      the glow color always matches that image with zero
-                      color-extraction logic — no canvas, no palette library.
-                      Purely decorative, so it's aria-hidden with empty alt;
-                      the real <Image> below carries the actual alt text.
-                      `quality` is dropped low since blur-3xl destroys any
-                      fine detail anyway — no reason to ship full-res bytes
-                      for pixels nobody can resolve. */}
-                  <Image
-                    src={project.image}
-                    alt=""
-                    aria-hidden
-                    fill
-                    quality={20}
-                    className={`
-                      absolute inset-0 -z-10 scale-95 rounded-2xl object-cover
-                      blur-3xl saturate-150
-                      transition-opacity duration-700 ease-in-out
-                      ${isActive ? "opacity-70" : "opacity-0"}
-                    `}
-                  />
-                  <div
-                    className={`
-                      relative h-110 w-full overflow-hidden rounded-2xl
-                      border border-white/10
-                      transition-shadow duration-700 ease-in-out
-                      ${isActive ? IMAGE_GLOW : "shadow-none"}
-                    `}
-                  >
-                    <Image
-                      src={project.image}
-                      alt={project.title}
-                      width={500}
-                      height={500}
-                      className="h-110 w-full object-cover"
-                    />
+                <Image
+                  src={project.image}
+                  alt={`${project.title} screenshot`}
+                  fill
+                  sizes="(min-width: 1024px) 60vw, 100vw"
+                  className="object-cover object-top transition-transform duration-700 ease-out-expo group-hover:scale-[1.04] motion-reduce:transition-none"
+                />
+
+                <div
+                  className={`glass-strong absolute inset-x-3 bottom-3 rounded-2xl p-5 sm:inset-x-4 sm:bottom-4 sm:p-6 ${span === "lg:col-span-12" ? "lg:right-auto lg:w-xl" : ""}`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-ink/70">
+                        {project.category}
+                      </p>
+                      <h3 className="mt-1 text-xl font-semibold tracking-tight text-balance text-ink sm:text-2xl">
+                        {project.title}
+                      </h3>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-2">
+                      {project.repoHref && (
+                        <a
+                          href={project.repoHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`${project.title} source code on GitHub`}
+                          className="focus-ring flex size-10 items-center justify-center rounded-full border border-ink/15 text-ink transition-colors duration-200 hover:bg-ink/10"
+                        >
+                          <FaGithub className="size-4" aria-hidden />
+                        </a>
+                      )}
+                      {project.href && (
+                        <a
+                          href={project.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Open ${project.title} live site`}
+                          className="focus-ring flex size-10 items-center justify-center rounded-full bg-accent text-on-accent transition-transform duration-200 ease-out-expo hover:scale-105 active:scale-95"
+                        >
+                          <ArrowUpRight className="size-4" aria-hidden />
+                        </a>
+                      )}
+                    </div>
                   </div>
+
+                  <p className="mt-3 line-clamp-2 max-w-[56ch] text-sm leading-relaxed text-ink/80">
+                    {project.description}
+                  </p>
+
+                  <ul
+                    className="mt-4 flex flex-wrap gap-1.5"
+                    aria-label="Tech stack"
+                  >
+                    {project.stack.map((tech) => (
+                      <li
+                        key={tech}
+                        translate="no"
+                        className="rounded-full border border-ink/15 px-2.5 py-1 text-xs text-ink/75"
+                      >
+                        {tech}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <p className="mt-4 text-zinc-300">{project.description}</p>
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {project.stack.map((tech) => (
-                    <li
-                      key={tech}
-                      className={`${GLASS} rounded-full px-3 py-1 text-xs text-slate-300`}
-                    >
-                      {tech}
-                    </li>
-                  ))}
-                </ul>
-              </article>
+              </li>
             );
           })}
-        </div>
-
-        {/* Index column: the list itself. On mobile (no hover), each row
-            carries its own thumbnail/description/stack inline instead of
-            relying on the preview column above, which is hidden below lg. */}
-        <div>
-          <SectionHeader>Projects</SectionHeader>
-
-          <div className="space-y-5">
-            {projects.map((project) => (
-              <div
-                key={project.id}
-                onMouseEnter={() => setHoveredProject(project.id)}
-                onMouseLeave={() => setHoveredProject(null)}
-                className={`
-                  group relative overflow-hidden rounded-2xl
-                  ${GLASS} p-5
-                  transition-all duration-300 ease-out
-                  hover:border-accent/50 hover:bg-white/8
-                  hover:shadow-[0_0_40px_-10px_var(--color-accent)]/40
-                `}
-              >
-                {/* mobile-only thumbnail — the crossfade preview column is
-                    hidden below lg, so this is the only visual on phones */}
-                <div className="mb-4 overflow-hidden rounded-xl lg:hidden">
-                  <Image
-                    src={project.image}
-                    alt={project.title}
-                    width={600}
-                    height={340}
-                    className="h-40 w-full object-cover"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex min-w-0 items-center gap-3">
-                    {/* Fixed-width slot so the title doesn't jump sideways
-                        when the arrow fades in — only opacity/position
-                        animate, nothing shifts layout. */}
-                    <span
-                      className={`
-                        hidden w-5 shrink-0 items-center justify-center
-                        -translate-x-2 text-accent opacity-0
-                        transition-all duration-300 ease-out
-                        group-hover:translate-x-0 group-hover:opacity-100
-                        lg:flex
-                      `}
-                      aria-hidden
-                    >
-                      <ArrowRight className="h-5 w-5" />
-                    </span>
-                    <span className="truncate text-xl font-bold text-white">
-                      {project.title}
-                    </span>
-                  </div>
-
-                  <span
-                    className={`${GLASS} hidden shrink-0 rounded-full px-3 py-1 text-xs text-slate-300 sm:inline-flex`}
-                  >
-                    {project.category}
-                  </span>
-
-                  <div className="flex shrink-0 items-center gap-2">
-                    <a
-                      href={project.repoHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`View ${project.title} source on GitHub`}
-                      aria-disabled={!project.repoHref}
-                      tabIndex={project.repoHref ? 0 : -1}
-                      className={`
-                        flex h-10 w-10 items-center justify-center rounded-full
-                        ${GLASS}
-                        transition-all duration-300 ease-out
-                        focus-visible:outline-2 focus-visible:outline-accent
-                        ${project.repoHref
-                          ? `text-slate-200 hover:border-accent/60 hover:bg-accent/15 hover:text-accent ${ICON_GLOW}`
-                          : "pointer-events-none text-slate-600"}
-                      `}
-                    >
-                      <FaGithub className="h-4 w-4" />
-                    </a>
-                    <a
-                      href={project.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Open ${project.title} live demo`}
-                      aria-disabled={!project.href}
-                      tabIndex={project.href ? 0 : -1}
-                      className={`
-                        flex h-10 w-10 items-center justify-center rounded-full
-                        ${GLASS}
-                        transition-all duration-300 ease-out
-                        focus-visible:outline-2 focus-visible:outline-accent
-                        ${project.href
-                          ? `text-slate-200 hover:border-accent/60 hover:bg-accent/15 hover:text-accent ${ICON_GLOW}`
-                          : "pointer-events-none text-slate-600"}
-                      `}
-                    >
-                      <MdOpenInNew className="h-4 w-4" />
-                    </a>
-                  </div>
-                </div>
-
-                {/* mobile-only description + stack — desktop shows these in
-                    the preview column instead */}
-                <p className="mt-3 text-sm text-zinc-300 lg:hidden">
-                  {project.description}
-                </p>
-                <ul className="mt-2 flex flex-wrap gap-2 lg:hidden">
-                  {project.stack.map((tech) => (
-                    <li
-                      key={tech}
-                      className={`${GLASS} rounded-full px-3 py-1 text-xs text-slate-300`}
-                    >
-                      {tech}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
+        </ul>
       </div>
     </section>
   );

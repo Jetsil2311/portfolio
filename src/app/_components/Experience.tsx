@@ -1,70 +1,72 @@
-// GUIDE: Your "past works" — jobs, internships, freelance, open source.
-// Same pattern as Projects: content lives in `_lib/data.ts`, this component
-// just maps over it.
+// GUIDE: Jobs, internships, freelance, open source. Same pattern as
+// Projects: content lives in `_lib/data.ts`, this component maps over it.
+// Two-column layout: the heading sticks on the left while entries scroll on
+// the right (plain CSS `sticky`, no JS). Collapses to one column below `lg`.
 
 import { experience } from "@/app/_lib/data";
-import { SectionHeader } from "./SectionHeader";
-
-// Same glass-panel treatment as Projects.tsx (border/bg/blur), reused here
-// only for the tech-stack badges — entries themselves are plain text, not
-// cards, since there's nothing interactive about them.
-const GLASS = "border border-white/10 bg-white/5 backdrop-blur-md";
 
 export default function Experience() {
   return (
     <section
       id="experience"
-      className="relative scroll-mt-16 px-6 py-24 sm:px-8"
+      aria-labelledby="experience-title"
+      className="scroll-mt-24 border-t border-line py-24 sm:py-32"
     >
-      {/* Ambient glows — same recipe as Hero/Projects, corners swapped from
-          Projects' so the light reads as continuous scrolling down the page. */}
-      <div className="pointer-events-none absolute -top-20 -right-20 h-150 w-150 rounded-full bg-purple-600 opacity-15 blur-[200px]" />
-      <div className="pointer-events-none absolute -bottom-20 -left-20 h-150 w-150 rounded-full bg-orange-500 opacity-15 blur-[200px]" />
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 sm:px-8 lg:grid-cols-12 lg:gap-8">
+        <div className="lg:col-span-4">
+          <div className="lg:sticky lg:top-28">
+            <h2
+              id="experience-title"
+              className="text-4xl font-semibold tracking-tighter text-ink sm:text-5xl"
+            >
+              Experience
+            </h2>
+            <p className="mt-4 max-w-xs leading-relaxed text-muted">
+              Currently building new projects and experiences.
+            </p>
+          </div>
+        </div>
 
-      <div className="relative mx-auto max-w-6xl">
-        <SectionHeader>Experience</SectionHeader>
-        {/* TODO: populate `experience` in src/app/_lib/data.ts */}
-        <div className="mt-6 divide-y divide-white/10">
+        <ol className="space-y-16 lg:col-span-8">
           {experience.map((item) => (
-            <article key={item.id} className="py-8 first:pt-0 last:pb-0">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <h3 className="text-xl font-bold text-white">
-                  {item.role} <span className="text-accent">·</span>{" "}
-                  {item.organization}
+            <li key={item.id} className="reveal">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                <h3 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+                  {item.role}
                 </h3>
-                <span className="shrink-0 text-sm text-zinc-500">
+                <p className="font-mono text-sm text-subtle tabular-nums">
                   {item.period}
-                </span>
+                </p>
               </div>
+              <p className="mt-1 font-medium text-accent-ink">
+                {item.organization}
+              </p>
 
-              <ul className="mt-3 space-y-2">
+              <ul className="mt-8 space-y-5">
                 {item.highlights.map((point, i) => (
-                  <li key={i} className="flex gap-2.5 text-zinc-300">
-                    <span
-                      className="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-accent"
-                      aria-hidden
-                    />
-                    <span className="w-[75%]">{point}</span>
+                  <li
+                    key={i}
+                    className="relative max-w-[62ch] pl-7 leading-relaxed text-pretty text-muted before:absolute before:top-[0.75em] before:left-0 before:h-px before:w-4 before:bg-accent"
+                  >
+                    {point}
                   </li>
                 ))}
               </ul>
 
-              <ul className="mt-4 flex flex-wrap gap-2">
+              <ul className="mt-8 flex flex-wrap gap-2" aria-label="Tech stack">
                 {item.stack.map((tech) => (
                   <li
                     key={tech}
-                    className={`${GLASS} rounded-full px-3 py-1 text-xs text-slate-300`}
+                    translate="no"
+                    className="rounded-full border border-line px-3 py-1 text-xs text-muted"
                   >
                     {tech}
                   </li>
                 ))}
               </ul>
-            </article>
+            </li>
           ))}
-        </div>
-      <p className="mt-12 text-sm text-slate-400 italic">
-        Currently building new projects and experiences.
-      </p>
+        </ol>
       </div>
     </section>
   );

@@ -31,7 +31,7 @@ export type ExperienceItem = {
   id: string;
   role: string;
   organization: string;
-  period: string; // e.g. "2023 — Present"
+  period: string; // e.g. "2023 - Present"
   highlights: string[]; // bullet points — what you actually did
   stack: string[]; // tech badges, e.g. ["React", "Firebase"]
 };
@@ -49,7 +49,7 @@ export const projects: Project[] = [
   {
     id: "1",
     title: "Stride Mobility",
-    description: "Developed a fully functional iOS Mobility App designed to promote walking amongst young people",
+    description: "Developed a fully functional iOS Mobility App designed to promote walking amongst young people.",
     category: "Fullstack Mobile App",
     stack: ["React Native", "NativeWind", "Supabase", "Javascript"],
     image: "/projects/strideapp.png",
@@ -73,15 +73,6 @@ export const projects: Project[] = [
     stack: ["React", "Tailwind CSS", "Firebase", "Javascript", "HTML", "CSS"],
     image: "/projects/nativa.png",
     href: "https://nativa-menu.vercel.app/"
-  },
-  {
-    id: "4",
-    title: "Drug Awereness Website",
-    description: "Designed a website to reduce drug consumption amongst teenagers.",
-    category: "Frontend",
-    stack: ["React", "Tailwind CSS"],
-    image: "/projects/pec.png",
-    href: "https://pec-three.vercel.app/"
   }
 ];
 
@@ -94,8 +85,8 @@ export const experience: ExperienceItem[] = [
     period: "Feb 2026 - Present",
     highlights: [
       "Designed and built two production SaaS platforms using React, Express, and NativeWind, enabling local businesses to accept online orders.",
-      "Developed a React.js digital menu platform with an ordering system for Bubble Kaapeh, deployed on Vercel and serving 5+ restaurant/café clients",
-      "Designed ordering platform + POS system tailored for Nativa"
+      "Developed a React.js digital menu platform with an ordering system for Bubble Kaapeh, deployed on Vercel and serving 5+ restaurant/café clients.",
+      "Designed an ordering platform and POS system tailored for Nativa."
     ],
     stack: ["React", "Tailwind CSS", "Firebase"],
   }
