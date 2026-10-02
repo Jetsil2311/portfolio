@@ -1,8 +1,12 @@
 // GUIDE: Reads from the `projects` array in `_lib/data.ts`. Each card is the
 // screenshot itself, full-bleed, with a glass caption panel floating over its
 // lower edge: the screenshot's own colors blur through the panel, which is
-// the glass effect doing real work. Server Component: hover zoom and the
-// scroll reveal are plain CSS, so this ships no client JS.
+// the glass effect doing real work. The section stays a Server Component;
+// each card is wrapped in <PointerSurface> only so a soft light can follow
+// the cursor *behind* the glass panel, which makes the frosted blur visible
+// as you move. The whole card is clickable (live site, else source code)
+// through a full-size link layered under the panel; the icon buttons on top
+// stay the keyboard and screen-reader path.
 //
 // Layout is an asymmetric 12-column grid (7/5, then 5/7) so the four
 // projects don't read as a row of identical cards. It collapses to a single
@@ -16,6 +20,7 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 import { projects } from "@/app/_lib/data";
+import PointerSurface from "./PointerSurface";
 
 // Column span per position; repeats every four projects. With an odd count
 // the last project would sit alone next to an empty cell, so it spans the
@@ -56,8 +61,10 @@ export default function Projects() {
         <ul className="mt-14 grid grid-cols-1 gap-5 lg:grid-cols-12 lg:gap-6">
           {projects.map((project, i) => {
             const span = spanFor(i, projects.length);
+            const primaryHref = project.href ?? project.repoHref;
             return (
-              <li
+              <PointerSurface
+                as="li"
                 key={project.id}
                 className={`reveal group relative isolate aspect-4/5 overflow-hidden rounded-3xl border border-line bg-surface sm:aspect-4/3 lg:aspect-auto lg:h-136 ${span}`}
               >
@@ -69,8 +76,27 @@ export default function Projects() {
                   className="object-cover object-top transition-transform duration-700 ease-out-expo group-hover:scale-[1.04] motion-reduce:transition-none"
                 />
 
+                {/* light that follows the cursor, diffused by the glass */}
                 <div
-                  className={`glass-strong absolute inset-x-3 bottom-3 rounded-2xl p-5 sm:inset-x-4 sm:bottom-4 sm:p-6 ${span === "lg:col-span-12" ? "lg:right-auto lg:w-xl" : ""}`}
+                  aria-hidden
+                  className="spotlight pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 motion-reduce:hidden"
+                />
+
+                {/* whole-card click target for mouse users; duplicates the
+                    buttons below, so it's hidden from keyboard and AT */}
+                {primaryHref && (
+                  <a
+                    href={primaryHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-hidden
+                    tabIndex={-1}
+                    className="absolute inset-0"
+                  />
+                )}
+
+                <div
+                  className={`glass-strong pointer-events-none absolute inset-x-3 bottom-3 rounded-2xl p-5 sm:inset-x-4 sm:bottom-4 sm:p-6 ${span === "lg:col-span-12" ? "lg:right-auto lg:w-xl" : ""}`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
@@ -82,7 +108,7 @@ export default function Projects() {
                       </h3>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="pointer-events-auto flex shrink-0 items-center gap-2">
                       {project.repoHref && (
                         <a
                           href={project.repoHref}
@@ -127,7 +153,7 @@ export default function Projects() {
                     ))}
                   </ul>
                 </div>
-              </li>
+              </PointerSurface>
             );
           })}
         </ul>

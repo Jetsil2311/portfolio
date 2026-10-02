@@ -66,6 +66,9 @@
      screenshots. A filter isn't a color, so light-dark() can't hold it;
      it's switched with the theme attribute instead. */
   --glass-tone: brightness(1.12);
+
+  /* the soft light that follows the cursor across project cards */
+  --glint: light-dark(oklch(1 0 0 / 0.55), oklch(1 0 0 / 0.3));
 }
 
 :root[data-theme="dark"] {
@@ -91,6 +94,7 @@
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
   --color-accent-ink: var(--accent-ink);
+  --color-glint: var(--glint);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -102,6 +106,8 @@
   --drop-shadow-float: 0 28px 32px var(--shadow-tint);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* slight overshoot, for things that get "thrown" and settle (hero pile) */
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
   --animate-rise: rise 0.9s var(--ease-out-expo) both;
 }
 
@@ -153,6 +159,42 @@
     background-color: var(--color-surface);
     backdrop-filter: none;
   }
+}
+
+/* Pointer effects. All read the CSS variables PointerSurface.tsx writes
+   (--mx/--my in px, --px/--py normalized -1..1); they do nothing until the
+   mouse moves over that surface.
+
+   parallax: drifts an element with the pointer by up to `--depth` px, so
+   layers at different depths move at different speeds. Uses the standalone
+   `translate` property, so it composes with `transform` animations. */
+@utility parallax {
+  @media (prefers-reduced-motion: no-preference) {
+    translate: calc(var(--px, 0) * var(--depth, 0) * 1px)
+      calc(var(--py, 0) * var(--depth, 0) * 1px);
+    transition: translate 0.9s var(--ease-out-expo);
+  }
+}
+
+/* text-shine: an accent glint centered on the cursor. Meant for an
+   aria-hidden duplicate of a heading laid over the original with
+   `bg-clip-text text-transparent`, so the real text keeps its colors. */
+@utility text-shine {
+  background-image: radial-gradient(
+    circle 9rem at var(--mx, -100rem) var(--my, -100rem),
+    var(--color-accent),
+    transparent 70%
+  );
+}
+
+/* spotlight: a soft light under the cursor (used behind the glass caption
+   panels on project cards, so the frosted blur visibly diffuses it). */
+@utility spotlight {
+  background-image: radial-gradient(
+    circle 20rem at var(--mx, -100rem) var(--my, -100rem),
+    var(--color-glint),
+    transparent 70%
+  );
 }
 
 @utility focus-ring {

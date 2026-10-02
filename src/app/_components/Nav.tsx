@@ -1,20 +1,15 @@
 // GUIDE: Plain in-page navigation. Every "page" here is a <section id="...">
 // on the same route, so ordinary anchor links are enough; next/link is for
-// navigating between routes. Still a Server Component: no state, no effects.
+// navigating between routes. Server Component; the two interactive bits
+// (section links with the scroll-spy pill, and the theme switch) are their
+// own small Client Components.
 //
 // It's `fixed`, so the whole page scrolls *underneath* it. That's what makes
 // the glass pill worth having: screenshots and text visibly blur through it
-// as you scroll. The theme switch is its own tiny Client Component, so the
-// rest of the nav stays server-rendered.
+// as you scroll.
 
+import NavLinks from "./NavLinks";
 import ThemeToggle from "./ThemeToggle";
-
-const links = [
-  { href: "#skills", label: "Skills" },
-  { href: "#projects", label: "Projects" },
-  { href: "#experience", label: "Experience" },
-  { href: "#contact", label: "Contact" },
-];
 
 export default function Nav() {
   return (
@@ -34,18 +29,7 @@ export default function Nav() {
         </a>
 
         <div className="flex items-center gap-1">
-          <ul className="flex items-center">
-            {links.map((link) => (
-              <li key={link.href}>
-                <a
-                  href={link.href}
-                  className="focus-ring rounded-full px-1.5 py-2 text-[0.8125rem] text-muted transition-colors duration-200 hover:bg-ink/5 hover:text-ink sm:px-3.5 sm:text-sm"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <NavLinks />
           <ThemeToggle />
           <a
             href="/cv.pdf"

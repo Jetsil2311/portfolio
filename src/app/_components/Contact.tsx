@@ -1,7 +1,7 @@
-// GUIDE: Simplest version: just links (email, GitHub, LinkedIn). Server
-// Component, no JS needed. The email is shown as readable text, not only
-// behind a mailto: link, so it can be copied even where mailto: doesn't open
-// a mail app.
+// GUIDE: Links (email, GitHub, LinkedIn) plus a copy-to-clipboard button.
+// Server Component; only <CopyEmail> ships JS. The email is also shown as
+// readable text, not only behind a mailto: link, since mailto: often
+// doesn't open anything on a recruiter's machine.
 //
 // LEVEL UP: for an actual contact *form*, use a Server Action: an async
 // function marked "use server" passed straight to <form action={...}>.
@@ -9,6 +9,7 @@
 
 import { ArrowUpRight } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
+import CopyEmail from "./CopyEmail";
 
 const EMAIL = "jethrosiloe26@gmail.com";
 
@@ -32,8 +33,8 @@ export default function Contact() {
           Hiring a fullstack developer?
         </h2>
         <p className="mt-5 max-w-[48ch] text-lg leading-relaxed text-pretty text-muted">
-          Email is the fastest way to reach me. My code and background are on
-          GitHub and LinkedIn.
+          I&apos;m open to remote fullstack roles. Email is the fastest way to
+          reach me, or find my work on GitHub and LinkedIn.
         </p>
 
         <a
@@ -48,6 +49,9 @@ export default function Contact() {
         </a>
 
         <ul className="mt-10 flex flex-wrap gap-3">
+          <li>
+            <CopyEmail email={EMAIL} />
+          </li>
           {profiles.map(({ href, label, icon: Icon }) => (
             <li key={label}>
               <a
