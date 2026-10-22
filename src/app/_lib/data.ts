@@ -56,6 +56,16 @@ export const projects: Project[] = [
     repoHref: "https://github.com/Jetsil2311/stride"
   },
   {
+    id: "4",
+    title: "Tally",
+    description: "A personal finance tracking app design to perfectly keep record of every income and expense using AI",
+    category: "Fullstack web app",
+    stack: ["NextJS", "TailwindCSS", "PostgreSQL", "Docker", "TypeScript"],
+    image: "/projects/tally.png",
+    href: "https://t-ally.vercel.app/",
+    repoHref: "https://github.com/Jetsil2311/tally-app"
+  },
+  {
     id: "2",
     title: "Bubble Kaapeh",
     description: "Designed branding identity and developed a website for a local bubble tea shop.",
@@ -73,7 +83,7 @@ export const projects: Project[] = [
     stack: ["React", "Tailwind CSS", "Firebase", "Javascript", "HTML", "CSS"],
     image: "/projects/nativa.png",
     href: "https://nativa-menu.vercel.app/"
-  }
+  },
 ];
 
 // TODO: replace with your real work / internship / freelance history.
