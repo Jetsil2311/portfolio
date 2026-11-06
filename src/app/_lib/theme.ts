@@ -12,8 +12,8 @@ export const THEME_STORAGE_KEY = "theme";
 // export), so a manual theme choice can't be overridden by a media-query
 // version of the tag.
 export const THEME_COLORS: Record<Theme, string> = {
-  light: "#f8f7f5",
-  dark: "#121110",
+  light: "#f1f1ee",
+  dark: "#101112",
 };
 
 // Runs as an inline <script> before the page paints, so a stored "light"
@@ -39,5 +39,6 @@ export const themeInitScript = `(function () {
     media.addEventListener("change", function (event) {
       if (!localStorage.getItem("${THEME_STORAGE_KEY}")) apply(event.matches ? "dark" : "light");
     });
+    if (window.chrome && CSS.supports("backdrop-filter", "url(#a)")) root.dataset.lens = "";
   } catch (error) {}
 })();`;

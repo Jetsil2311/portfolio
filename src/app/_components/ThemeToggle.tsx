@@ -44,7 +44,7 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       aria-label="Toggle dark mode"
       title="Toggle dark mode"
-      className="focus-ring flex size-9 shrink-0 items-center justify-center rounded-full text-muted transition-colors duration-200 hover:bg-ink/5 hover:text-ink active:scale-95"
+      className="theme-toggle focus-ring flex size-9 shrink-0 items-center justify-center rounded-full text-ink/75 transition-[color,background-color,opacity] duration-200 hover:bg-ink/10 hover:text-ink active:scale-110"
     >
       <Sun className="hidden size-4 dark:block" aria-hidden />
       <Moon className="size-4 dark:hidden" aria-hidden />

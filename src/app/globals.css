@@ -1,242 +1,575 @@
 @import "tailwindcss";
 
-/* GUIDE: the whole palette lives here as semantic tokens. Components only
-   ever use the Tailwind classes these generate (bg-canvas, text-ink,
-   text-muted, border-line, bg-accent, text-on-accent, ...), never raw colors.
+/* The page has one set of color tokens that changes value per "world". Each
+   project is a world with its real brand colors; `data-world` on <html> is set
+   by WorldObserver.tsx (scrolling) and Hero.tsx (hovering a project name).
+   The tokens are registered with @property so the browser can animate them,
+   which is what makes the whole page melt from one identity to the next.
 
-   Each token holds both modes via `light-dark(<light>, <dark>)`, which
-   resolves against the element's `color-scheme`. So switching themes is a
-   single property:
-   - no `data-theme` on <html> (JS disabled): follow the OS setting
-   - `data-theme="light"` / `"dark"`: set by the inline script in layout.tsx
-     (stored choice, else the OS setting) and flipped by ThemeToggle.tsx.
-   The `dark:` variant is keyed to the same attribute (see @custom-variant).
+   Layers:
+   - Taste: anything in a brand font and world colors.
+   - Tools: always Geist Mono on the fixed dark `--xray-*` tokens, whatever the
+     world. Seeing that look anywhere on the page means "this is how it works".
 
-   Material rules used across the page:
-   - Glass (`glass`, `glass-strong`) is only for things that float over other
-     content (nav, hero info card, project caption panels, the stack panel).
-     Glass over an empty background is just a grey box, so plain surfaces use
-     `border-line` instead.
-   - Radius scale: interactive controls + chips are pills (rounded-full),
-     images and inner panels are rounded-2xl, outer cards are rounded-3xl.
-   - Z-index scale: page content 0-20 (inside an isolated hero), nav 40,
-     skip link 50. */
+   Z-index scale: page content 0-20, nav 40, skip link 50. */
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+@property --canvas { syntax: "<color>"; inherits: true; initial-value: #f1f1ee; }
+@property --ink { syntax: "<color>"; inherits: true; initial-value: #121314; }
+@property --muted { syntax: "<color>"; inherits: true; initial-value: #55565a; }
+@property --line { syntax: "<color>"; inherits: true; initial-value: #12131420; }
+@property --pop { syntax: "<color>"; inherits: true; initial-value: #121314; }
+@property --on-pop { syntax: "<color>"; inherits: true; initial-value: #f1f1ee; }
+
 :root {
   color-scheme: light dark;
+  --canvas: #f1f1ee;
+  --ink: #121314;
+  --muted: #55565a;
+  --line: #12131420;
+  --pop: #121314;
+  --on-pop: #f1f1ee;
+  --world-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* the tools layer never changes */
+  --xray-bg: #0b0d0c;
+  --xray-ink: #e6ece6;
+  --xray-dim: #93a093;
+  --xray-line: #e6ece626;
+  --xray-hot: #c8f53c;
 }
 
-:root[data-theme="light"] {
-  color-scheme: light;
-}
+:root[data-theme="light"] { color-scheme: light; }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-}
-
-:root {
-  --canvas: light-dark(oklch(0.975 0.004 70), oklch(0.16 0.005 60));
-  --surface: light-dark(oklch(0.945 0.005 70), oklch(0.2 0.006 60));
-  --ink: light-dark(oklch(0.2 0.008 60), oklch(0.955 0.004 70));
-  --muted: light-dark(oklch(0.44 0.01 60), oklch(0.74 0.008 70));
-  --subtle: light-dark(oklch(0.52 0.01 60), oklch(0.63 0.008 70));
-  --line: light-dark(oklch(0.2 0.008 60 / 0.1), oklch(1 0 0 / 0.09));
-
-  --glass: light-dark(oklch(0.99 0.003 70 / 0.6), oklch(0.24 0.008 60 / 0.6));
-  --glass-strong: light-dark(
-    oklch(0.96 0.006 70 / 0.55),
-    oklch(0.2 0.008 60 / 0.55)
-  );
-  --glass-edge: light-dark(oklch(1 0 0 / 0.7), oklch(1 0 0 / 0.12));
-  --glass-highlight: light-dark(oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.14));
-  --shadow-tint: light-dark(oklch(0.35 0.03 50 / 0.22), oklch(0 0 0 / 0.55));
-
-  /* accent = fills (buttons, markers). on-accent = text sitting on an
-     accent fill. accent-ink = accent-colored text on the canvas, darker in
-     light mode so it still passes contrast. */
-  --accent: light-dark(oklch(0.7 0.18 45), oklch(0.75 0.17 48));
-  --on-accent: oklch(0.18 0.03 42);
-  --accent-ink: light-dark(oklch(0.5 0.16 40), oklch(0.8 0.14 52));
-
-  /* Glass "tone": a brightness shift applied to whatever is *behind* a
-     glass pane. Light glass lifts the backdrop, dark glass dims it, so a
-     fairly transparent pane still reads cleanly over both bright and dark
-     screenshots. A filter isn't a color, so light-dark() can't hold it;
-     it's switched with the theme attribute instead. */
-  --glass-tone: brightness(1.12);
-
-  /* the soft light that follows the cursor across project cards */
-  --glint: light-dark(oklch(1 0 0 / 0.55), oklch(1 0 0 / 0.3));
-}
-
-:root[data-theme="dark"] {
-  --glass-tone: brightness(0.6);
+  --canvas: #101112;
+  --ink: #eeeeea;
+  --muted: #a4a5a3;
+  --line: #eeeeea22;
+  --pop: #eeeeea;
+  --on-pop: #101112;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --glass-tone: brightness(0.6);
+    --canvas: #101112;
+    --ink: #eeeeea;
+    --muted: #a4a5a3;
+    --line: #eeeeea22;
+    --pop: #eeeeea;
+    --on-pop: #101112;
   }
+}
+
+/* Bubble Kaapeh: --color-main-500, cream and butter from its index.css */
+:root[data-world="bk"] {
+  --canvas: #6d2c1e;
+  --ink: #fff8e6;
+  --muted: #f0d6bf;
+  --line: #fff8e62e;
+  --pop: #fbe594;
+  --on-pop: #26100b;
+}
+
+/* Nativa: the menu's cream and petrol blue */
+:root[data-world="nativa"] {
+  --canvas: #f4e3c1;
+  --ink: #0f4358;
+  --muted: #3c6474;
+  --line: #0f435830;
+  --pop: #0f607a;
+  --on-pop: #fdf3dc;
+}
+
+/* Tally: --base and --brand from its brand files */
+:root[data-world="tally"] {
+  --canvas: #0c0b1d;
+  --ink: #f3f1ff;
+  --muted: #aeaad2;
+  --line: #f3f1ff24;
+  --pop: #6f4fff;
+  --on-pop: #f3f1ff;
+}
+
+/* Stride: map charcoal and `brand` from its tailwind config */
+:root[data-world="stride"] {
+  --canvas: #222222;
+  --ink: #ffffff;
+  --muted: #b5b5b5;
+  --line: #ffffff24;
+  --pop: #f43966;
+  --on-pop: #16060b;
 }
 
 @theme inline {
   --color-canvas: var(--canvas);
-  --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
-  --color-subtle: var(--subtle);
   --color-line: var(--line);
-  --color-glass: var(--glass);
-  --color-glass-strong: var(--glass-strong);
-  --color-glass-edge: var(--glass-edge);
-  --color-accent: var(--accent);
-  --color-on-accent: var(--on-accent);
-  --color-accent-ink: var(--accent-ink);
-  --color-glint: var(--glint);
+  --color-pop: var(--pop);
+  --color-on-pop: var(--on-pop);
+  --color-xray: var(--xray-bg);
+  --color-xray-ink: var(--xray-ink);
+  --color-xray-dim: var(--xray-dim);
+  --color-xray-line: var(--xray-line);
+  --color-xray-hot: var(--xray-hot);
 
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-familjen);
   --font-mono: var(--font-geist-mono);
-
-  --shadow-glass:
-    inset 0 1px 0 0 var(--glass-highlight), 0 24px 60px -24px var(--shadow-tint);
-  --shadow-lift: 0 30px 80px -30px var(--shadow-tint);
-  /* follows the alpha of transparent cutouts (the hero phone) */
-  --drop-shadow-float: 0 28px 32px var(--shadow-tint);
+  --font-bk: var(--font-fredoka);
+  --font-bk-body: var(--font-nunito);
+  --font-nat: Georgia, "Times New Roman", serif;
+  --font-tally: var(--font-bricolage);
+  --font-stride: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", var(--font-familjen), sans-serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  /* slight overshoot, for things that get "thrown" and settle (hero pile) */
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
   --animate-rise: rise 0.9s var(--ease-out-expo) both;
 }
 
 @keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* NOTE: only the standard `backdrop-filter` is written below. Tailwind's CSS
-   pipeline (Lightning CSS) adds the -webkit- prefix Safari needs on its own;
-   writing both by hand made it merge them into the prefixed one only, which
-   Chrome ignores, so the blur silently disappeared there.
-
-   Frosted glass (a web approximation, not Apple's Liquid Glass): translucent
-   fill + blur + saturation boost, a 1px light edge, and an inset top
-   highlight that reads as the lit edge of a pane. Falls back to a solid
-   surface when the OS asks for reduced transparency. */
-@utility glass {
-  background-color: var(--color-glass);
-  border: 1px solid var(--color-glass-edge);
-  box-shadow: var(--shadow-glass);
-  backdrop-filter: blur(24px) saturate(160%) var(--glass-tone);
-
-  @media (prefers-reduced-transparency: reduce) {
-    background-color: var(--color-surface);
-    backdrop-filter: none;
-  }
-}
-
-/* For panels carrying body text over busy screenshots. Rather than a dense
-   fill (which reads as a flat white/black slab), it uses a heavy blur that
-   melts any detail behind it into soft color, plus the tone shift, so the
-   pane stays translucent and the text stays readable. Text inside these
-   panels uses `text-ink/…` (not muted/subtle) so it keeps its contrast
-   whatever color shows through. */
-@utility glass-strong {
-  background-color: var(--color-glass-strong);
-  border: 1px solid var(--color-glass-edge);
-  box-shadow: var(--shadow-glass);
-  backdrop-filter: blur(40px) saturate(180%) var(--glass-tone);
-
-  @media (prefers-reduced-transparency: reduce) {
-    background-color: var(--color-surface);
-    backdrop-filter: none;
-  }
-}
-
-/* Pointer effects. All read the CSS variables PointerSurface.tsx writes
-   (--mx/--my in px, --px/--py normalized -1..1); they do nothing until the
-   mouse moves over that surface.
-
-   parallax: drifts an element with the pointer by up to `--depth` px, so
-   layers at different depths move at different speeds. Uses the standalone
-   `translate` property, so it composes with `transform` animations. */
-@utility parallax {
-  @media (prefers-reduced-motion: no-preference) {
-    translate: calc(var(--px, 0) * var(--depth, 0) * 1px)
-      calc(var(--py, 0) * var(--depth, 0) * 1px);
-    transition: translate 0.9s var(--ease-out-expo);
-  }
-}
-
-/* text-shine: an accent glint centered on the cursor. Meant for an
-   aria-hidden duplicate of a heading laid over the original with
-   `bg-clip-text text-transparent`, so the real text keeps its colors. */
-@utility text-shine {
-  background-image: radial-gradient(
-    circle 9rem at var(--mx, -100rem) var(--my, -100rem),
-    var(--color-accent),
-    transparent 70%
-  );
-}
-
-/* spotlight: a soft light under the cursor (used behind the glass caption
-   panels on project cards, so the frosted blur visibly diffuses it). */
-@utility spotlight {
-  background-image: radial-gradient(
-    circle 20rem at var(--mx, -100rem) var(--my, -100rem),
-    var(--color-glint),
-    transparent 70%
-  );
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
 }
 
 @utility focus-ring {
   &:focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-ink);
     outline-offset: 3px;
   }
 }
 
-/* Theme switch crossfade (ThemeToggle.tsx wraps the change in a View
-   Transition). Slightly slower than the browser default so it reads as a
-   deliberate fade rather than a flicker. */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.35s;
-}
-
-/* Scroll reveal with zero JS: CSS scroll-driven animation. Browsers without
-   `animation-timeline` (and anyone who prefers reduced motion) simply see
-   the content in place. */
+/* Scroll reveal with zero JS. Browsers without `animation-timeline` and anyone
+   who prefers reduced motion just see the content in place. */
 @utility reveal {
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
       animation: rise linear both;
       animation-timeline: view();
-      animation-range: entry 0% entry 55%;
+      animation-range: entry 0% entry 45%;
     }
   }
 }
 
-html {
-  /* the hero screenshots intentionally bleed off the right edge; clip (not
-     hidden) so no extra scroll container is created */
-  overflow-x: clip;
+/* The seam: the handle is the visible control, the real <input type=range>
+   sits on top of it invisibly for keyboard, touch and screen readers. */
+.xray-range {
+  appearance: none;
+  background: transparent;
+  cursor: ew-resize;
+  touch-action: pan-y;
+}
+.xray-range::-webkit-slider-runnable-track { height: 100%; background: transparent; }
+.xray-range::-webkit-slider-thumb { appearance: none; width: 44px; height: 100%; background: transparent; }
+.xray-range::-moz-range-track { height: 100%; background: transparent; }
+.xray-range::-moz-range-thumb { width: 44px; height: 100%; border: 0; background: transparent; }
+
+/* Slider used inside demos */
+.demo-range {
+  appearance: none;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+}
+.demo-range::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: currentColor; opacity: 0.35; }
+.demo-range::-moz-range-track { height: 4px; border-radius: 999px; background: currentColor; opacity: 0.35; }
+.demo-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -9px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--thumb, currentColor);
+}
+.demo-range::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 999px; background: var(--thumb, currentColor); }
+.demo-range:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 8px; }
+
+/* The cup: these are the production animations from the menu's index.css. */
+.drink-cup__liquid { transition: transform 750ms cubic-bezier(0.34, 1.3, 0.64, 1); }
+@keyframes drink-wave {
+  from { transform: translateX(0); }
+  to { transform: translateX(100px); }
+}
+.drink-cup__wave { animation: drink-wave 2.6s linear infinite; }
+@keyframes drink-pearl-drop {
+  0% { transform: translateY(-230px); opacity: 0; }
+  12% { opacity: 1; }
+  70% { transform: translateY(4px); }
+  85% { transform: translateY(-5px); }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.drink-cup__pearl { animation: drink-pearl-drop 620ms cubic-bezier(0.45, 0, 0.3, 1) both; }
+@keyframes drink-foam-pop {
+  0% { transform: scale(0.3, 0.1); opacity: 0; }
+  60% { transform: scale(1.08, 1.12); opacity: 1; }
+  100% { transform: scale(1, 1); opacity: 1; }
+}
+.drink-cup__foam {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: drink-foam-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes drink-ice-drop {
+  from { transform: translateY(-120px) rotate(-30deg); opacity: 0; }
+  to { transform: translateY(0) rotate(0); opacity: 1; }
+}
+@keyframes drink-ice-bob {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(3px) rotate(4deg); }
+}
+.drink-cup__ice {
+  animation:
+    drink-ice-drop 520ms cubic-bezier(0.34, 1.4, 0.64, 1) both,
+    drink-ice-bob 3.2s ease-in-out 600ms infinite;
 }
 
+/* New ticket line: the paper feeds out of the printer's mouth */
+@keyframes paper-feed {
+  from { transform: translateY(-1.6rem); }
+  to { transform: none; }
+}
+.paper-feed { animation: paper-feed 420ms cubic-bezier(0.25, 1, 0.5, 1) both; }
+
+/* A dropped report on the Stride map */
+@keyframes report-drop {
+  0% { transform: translateY(-18px) scale(0.4); opacity: 0; }
+  70% { transform: translateY(1px) scale(1.15); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+.report-drop { transform-box: fill-box; transform-origin: center; animation: report-drop 420ms var(--ease-spring) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .drink-cup__liquid { transition: none; }
+  .drink-cup__wave,
+  .drink-cup__pearl,
+  .drink-cup__foam,
+  .drink-cup__ice,
+  .paper-feed,
+  .report-drop { animation: none; }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 0.35s; }
+
+/* Light and dark only apply to the page's own sections. Inside a project the
+   brand decides, so the switch steps back instead of appearing to do nothing. */
+:root:is([data-world="bk"], [data-world="nativa"], [data-world="tally"], [data-world="stride"]) .theme-toggle {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+html { overflow-x: clip; }
+
 @media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
 }
 
 body {
   overflow-x: clip;
+  background-color: var(--canvas);
+  color: var(--ink);
+}
+
+/* ── Liquid Glass ─────────────────────────────────────────────────────────
+   A web approximation of Apple's Liquid Glass. Apple ships the real material
+   for its own platforms only; there is no official CSS. It's built from:
+   - a lit wallpaper (body::before), so the glass has light to catch
+   - a translucent fill with backdrop blur and a saturation boost
+   - a specular rim (::before), brightest where light would hit the edge
+   - a highlight that follows the pointer (::after, see GlassPointer.tsx)
+   - in Chromium only, real edge refraction (see LiquidLens.tsx)
+   Backdrop blur is expensive, so only floating things use it. `.glass-faux`
+   drops it for controls sitting on a panel, where there's nothing to blur.
+   Prefers-reduced-transparency gets opaque surfaces. */
+
+@property --glass-fill { syntax: "<color>"; inherits: true; initial-value: #ffffff4d; }
+@property --glow { syntax: "<color>"; inherits: true; initial-value: #12131433; }
+@property --shade { syntax: "<color>"; inherits: true; initial-value: #2a2f3a33; }
+@property --wall-a { syntax: "<color>"; inherits: true; initial-value: #b4c6ea80; }
+@property --wall-b { syntax: "<color>"; inherits: true; initial-value: #ecd9c680; }
+@property --wall-c { syntax: "<color>"; inherits: true; initial-value: #c8e2d470; }
+
+:root {
+  --glass-fill: #ffffff4d;
+  --glow: #12131433;
+  --shade: #2a2f3a33;
+  --wall-a: #b4c6ea80;
+  --wall-b: #ecd9c680;
+  --wall-c: #c8e2d470;
+  --rim-hi: #ffffffd9;
+  --rim-lo: #ffffff4d;
+  --sheen: #ffffff59;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    transition:
+      --canvas 0.9s var(--world-ease),
+      --ink 0.7s var(--world-ease),
+      --muted 0.7s var(--world-ease),
+      --line 0.7s var(--world-ease),
+      --pop 0.7s var(--world-ease),
+      --on-pop 0.7s var(--world-ease),
+      --glass-fill 0.7s var(--world-ease),
+      --glow 0.7s var(--world-ease),
+      --shade 0.7s var(--world-ease),
+      --wall-a 1.1s var(--world-ease),
+      --wall-b 1.1s var(--world-ease),
+      --wall-c 1.1s var(--world-ease);
+  }
+}
+
+:root[data-theme="dark"] {
+  --glass-fill: #ffffff14;
+  --glow: #eeeeea33;
+  --shade: #00000080;
+  --wall-a: #2c3d6699;
+  --wall-b: #43304d80;
+  --wall-c: #1f453a66;
+  --rim-hi: #ffffff8c;
+  --rim-lo: #ffffff1f;
+  --sheen: #ffffff1f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --glass-fill: #ffffff14;
+    --glow: #eeeeea33;
+    --shade: #00000080;
+    --wall-a: #2c3d6699;
+    --wall-b: #43304d80;
+    --wall-c: #1f453a66;
+    --rim-hi: #ffffff8c;
+    --rim-lo: #ffffff1f;
+    --sheen: #ffffff1f;
+  }
+}
+
+:root[data-world="bk"] {
+  --glass-fill: #fff8e61f;
+  --glow: #fbe59466;
+  --shade: #26100b80;
+  --wall-a: #b5553acc;
+  --wall-b: #3d130abf;
+  --wall-c: #c9743f99;
+  --rim-hi: #fff8e6a6;
+  --rim-lo: #fff8e626;
+  --sheen: #fff8e62e;
+}
+
+:root[data-world="nativa"] {
+  --glass-fill: #ffffff59;
+  --glow: #0f607a59;
+  --shade: #0f435838;
+  --wall-a: #fffaf0e6;
+  --wall-b: #5fb0c280;
+  --wall-c: #ffd23f73;
+  --rim-hi: #ffffffe6;
+  --rim-lo: #ffffff66;
+  --sheen: #ffffff66;
+}
+
+:root[data-world="tally"] {
+  --glass-fill: #f3f1ff17;
+  --glow: #6f4fff99;
+  --shade: #05041299;
+  --wall-a: #6f4fff66;
+  --wall-b: #ff5c9d33;
+  --wall-c: #2fd08f26;
+  --rim-hi: #f3f1ff8c;
+  --rim-lo: #f3f1ff1f;
+  --sheen: #f3f1ff21;
+}
+
+:root[data-world="stride"] {
+  --glass-fill: #ffffff14;
+  --glow: #f4396680;
+  --shade: #00000080;
+  --wall-a: #f4396626;
+  --wall-b: #2fd08f14;
+  --wall-c: #ffffff0a;
+  --rim-hi: #ffffff8c;
+  --rim-lo: #ffffff1f;
+  --sheen: #ffffff1c;
+}
+
+/* The wallpaper. Fixed and on its own layer, so scrolling never repaints it. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(62vmax 48vmax at 8% 4%, var(--wall-a), transparent 68%),
+    radial-gradient(56vmax 52vmax at 96% 34%, var(--wall-b), transparent 68%),
+    radial-gradient(70vmax 46vmax at 42% 108%, var(--wall-c), transparent 70%);
+}
+
+@layer components {
+  .glass {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(180deg, var(--sheen), transparent 58%), var(--glass-fill);
+    backdrop-filter: blur(14px) saturate(185%);
+    box-shadow:
+      inset 0 1px 1px var(--rim-hi),
+      inset 0 -1px 1px var(--rim-lo),
+      inset 0 0 14px var(--sheen),
+      0 1px 2px var(--shade),
+      0 12px 28px -12px var(--shade);
+    transition:
+      transform 0.5s var(--ease-spring),
+      box-shadow 0.35s ease,
+      background-color 0.35s ease,
+      color 0.35s ease;
+  }
+
+  /* Specular rim: a 1px ring lit from the top left and, more faintly, the
+     bottom right, like light passing through a curved edge. */
+  .glass::before,
+  .glass-panel::before,
+  .glass-rim::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: linear-gradient(135deg, var(--rim-hi), var(--rim-lo) 34%, transparent 52%, var(--rim-lo) 72%, var(--rim-hi));
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+
+  /* The highlight that follows the pointer */
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle 4.5rem at var(--gx, 50%) var(--gy, 0%), var(--rim-hi), transparent 72%);
+    mix-blend-mode: soft-light;
+    transition: opacity 0.3s ease;
+  }
+
+  /* Tinted: the primary action and selected states, with a colored glow.
+     Kept fairly dense so its label stays readable over anything. */
+  .glass-tint {
+    color: var(--on-pop);
+    background: linear-gradient(180deg, #ffffff30, transparent 42%), color-mix(in oklab, var(--pop) 92%, transparent);
+    box-shadow:
+      inset 0 1px 1px var(--rim-hi),
+      inset 0 -2px 4px color-mix(in oklab, var(--on-pop) 18%, transparent),
+      0 1px 2px var(--shade),
+      0 8px 26px -4px var(--glow);
+  }
+
+  .glass-faux { backdrop-filter: none; }
+
+  /* Bars float over anything, including light panels in a dark world, so they
+     carry enough of the page's own color to keep their label readable. */
+  .glass-bar {
+    background: linear-gradient(180deg, var(--sheen), transparent 58%), color-mix(in oklab, var(--canvas) 74%, transparent);
+  }
+
+  /* Dark glass for the tools layer, in every world */
+  .glass-dark {
+    background: color-mix(in oklab, var(--xray-bg) 74%, transparent);
+    backdrop-filter: blur(18px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 #ffffff24,
+      inset 0 0 0 1px #ffffff12,
+      0 18px 40px -22px #000c;
+  }
+
+  /* The seam's grip: clear enough to see both sides of the seam through it */
+  .glass-hot {
+    color: var(--xray-bg);
+    background: linear-gradient(180deg, #ffffff66, transparent 60%), color-mix(in oklab, var(--xray-hot) 78%, transparent);
+    box-shadow:
+      inset 0 1px 1px #ffffffb3,
+      inset 0 -2px 4px #5e7a0040,
+      0 4px 14px #0006,
+      0 0 26px -2px color-mix(in oklab, var(--xray-hot) 70%, transparent);
+  }
+
+  /* Large surfaces: translucent and rimmed, no backdrop blur */
+  .glass-panel {
+    position: relative;
+    background: linear-gradient(170deg, var(--sheen), transparent 30%), var(--glass-fill);
+    box-shadow:
+      inset 0 1px 1px var(--rim-hi),
+      inset 0 0 30px var(--sheen),
+      0 30px 60px -30px var(--shade);
+  }
+
+  .glass-rim { position: relative; }
+
+  @media (hover: hover) {
+    .glass:not(.glass-static):hover {
+      transform: translateY(-1px) scale(1.035);
+      box-shadow:
+        inset 0 1px 1px var(--rim-hi),
+        inset 0 -1px 1px var(--rim-lo),
+        inset 0 0 18px var(--sheen),
+        0 2px 4px var(--shade),
+        0 14px 34px -8px var(--glow);
+    }
+    .glass:hover::after { opacity: 1; }
+  }
+
+  /* Pressing swells the glass, the way Apple's controls do, instead of
+     pushing it in. */
+  .glass:not(.glass-static):active {
+    transform: scale(1.07);
+    transition-duration: 0.12s;
+  }
+
+  /* Chromium only: see LiquidLens.tsx. Set by the inline script in layout. */
+  :root[data-lens] .glass-lens {
+    backdrop-filter: url(#liquid-lens) blur(5px) saturate(185%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass { transition: none; }
+    .glass:not(.glass-static):hover,
+    .glass:not(.glass-static):active { transform: none; }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .glass,
+    .glass-faux,
+    :root[data-lens] .glass-lens {
+      background: var(--canvas);
+      backdrop-filter: none;
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .glass-tint { background: var(--pop); }
+    .glass-hot { background: var(--xray-hot); }
+    .glass-dark { background: var(--xray-bg); backdrop-filter: none; }
+    .glass-panel { background: var(--canvas); box-shadow: inset 0 0 0 1px var(--line); }
+  }
+}
+
+/* Slider thumbs become a droplet of glass */
+.demo-range::-webkit-slider-thumb {
+  width: 38px;
+  height: 24px;
+  margin-top: -10px;
+  background: linear-gradient(180deg, #ffffffd9, #ffffff73);
+  box-shadow: inset 0 1px 1px #fff, inset 0 -2px 3px #0000001f, 0 2px 8px #0000004d, 0 0 16px var(--thumb, transparent);
+  transition: transform 0.3s var(--ease-spring);
+}
+.demo-range:active::-webkit-slider-thumb { transform: scale(1.18); }
+.demo-range::-moz-range-thumb {
+  width: 38px;
+  height: 24px;
+  background: linear-gradient(180deg, #ffffffd9, #ffffff73);
+  box-shadow: inset 0 1px 1px #fff, inset 0 -2px 3px #0000001f, 0 2px 8px #0000004d, 0 0 16px var(--thumb, transparent);
 }

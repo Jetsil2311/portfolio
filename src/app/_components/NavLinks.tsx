@@ -11,8 +11,8 @@
 import { useEffect, useRef, useState } from "react";
 
 const links = [
-  { id: "skills", label: "Skills" },
   { id: "projects", label: "Projects" },
+  { id: "skills", label: "Skills" },
   { id: "experience", label: "Experience" },
   { id: "contact", label: "Contact" },
 ];
@@ -72,7 +72,7 @@ export default function NavLinks() {
       <span
         ref={pillRef}
         aria-hidden
-        className="absolute inset-y-0 left-0 rounded-full bg-ink/8 opacity-0 transition-[translate,width,opacity] duration-500 ease-out-expo motion-reduce:transition-none"
+        className="absolute inset-y-0 left-0 rounded-full bg-ink/10 opacity-0 shadow-[inset_0_1px_1px_var(--rim-hi),inset_0_0_8px_var(--sheen)] transition-[translate,width,opacity] duration-500 ease-out-expo motion-reduce:transition-none"
       />
       {links.map((link) => (
         // no `relative` here: the links must measure their offset from the
@@ -81,7 +81,7 @@ export default function NavLinks() {
           <a
             href={`#${link.id}`}
             aria-current={active === link.id ? "true" : undefined}
-            className="focus-ring relative block rounded-full px-1.5 py-2 text-[0.8125rem] text-muted transition-colors duration-200 hover:text-ink aria-[current]:text-ink sm:px-3.5 sm:text-sm"
+            className="focus-ring relative block rounded-full px-1.5 py-2 text-[0.8125rem] text-ink/75 transition-colors duration-200 hover:text-ink aria-[current]:text-ink sm:px-3.5 sm:text-sm"
           >
             {link.label}
           </a>

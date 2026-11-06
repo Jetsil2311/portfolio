@@ -30,10 +30,10 @@ export default function CopyEmail({ email }: { email: string }) {
     <button
       type="button"
       onClick={copy}
-      className="focus-ring inline-flex h-11 items-center gap-2 rounded-full border border-line px-5 text-sm font-medium text-ink transition-colors duration-200 hover:bg-ink/5 active:scale-[0.98]"
+      className="focus-ring glass inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-medium text-ink"
     >
       {copied ? (
-        <Check className="size-4 text-accent-ink" aria-hidden />
+        <Check className="size-4" aria-hidden />
       ) : (
         <Copy className="size-4" aria-hidden />
       )}

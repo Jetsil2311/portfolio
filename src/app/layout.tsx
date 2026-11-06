@@ -1,37 +1,34 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Bricolage_Grotesque,
+  Familjen_Grotesk,
+  Fredoka,
+  Geist_Mono,
+  Nunito,
+} from "next/font/google";
 import "./globals.css";
 import { themeInitScript } from "./_lib/theme";
+import GlassPointer from "./_components/GlassPointer";
+import LiquidLens from "./_components/LiquidLens";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// Familjen Grotesk is the page's own voice. Geist Mono is the tools layer.
+// The rest are the projects' real typefaces: Fredoka and Nunito (Bubble
+// Kaapeh's menu), Bricolage Grotesque (Tally). Nativa's menu uses Georgia and
+// Stride uses the iOS system font, so those two load nothing.
+const familjen = Familjen_Grotesk({ variable: "--font-familjen", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], preload: false });
+const fredoka = Fredoka({ variable: "--font-fredoka", subsets: ["latin"] });
+const nunito = Nunito({ variable: "--font-nunito", subsets: ["latin"], preload: false });
+const bricolage = Bricolage_Grotesque({ variable: "--font-bricolage", subsets: ["latin"] });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// GUIDE: `layout.tsx` at the root of `app/` is the Root Layout — it's required,
-// renders once, and wraps every page. Put things here that truly belong on
-// every route: <html>/<body>, global fonts, global CSS, and default <head>
-// metadata. Since this portfolio is a single page, you likely won't add more
-// layouts, but if you ever add nested routes (e.g. app/blog/), you can drop
-// another layout.tsx inside that folder and it nests inside this one.
-//
-// `metadata` is a special exported const Next.js reads to build the <head>
-// tags for you (title, description, OG tags, etc.) — no <Header> component
-// needed. Docs: node_modules/next/dist/docs/01-app/01-getting-started/14-metadata-and-og-images.md
 export const metadata: Metadata = {
   title: "Jethro Cruz | Fullstack Developer",
   description:
-    "Fullstack developer building production React, Next.js and Node apps for real businesses: ordering platforms, POS systems and iOS apps.",
+    "Fullstack developer based in Estado de México, México, who designs and builds what runs Bubble Kaapeh, Nativa, Tally and Stride. Try the real components on this page.",
 };
 
-// `viewport` is the sibling of `metadata` for <meta name="viewport">.
-// theme-color is intentionally not set here: the inline theme script owns
-// that tag so it can follow the manual light/dark switch (see _lib/theme.ts).
+// theme-color is intentionally not set here: the inline theme script owns that
+// tag so it can follow the manual light/dark switch (see _lib/theme.ts).
 export const viewport: Viewport = {
   colorScheme: "light dark",
 };
@@ -42,15 +39,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // suppressHydrationWarning: the inline theme script adds `data-theme` to
-    // <html> before React hydrates, so the server HTML intentionally differs
-    // on this one element (and only its attributes; children are unaffected).
+    // suppressHydrationWarning: the inline script sets data-theme on <html>
+    // before React hydrates, and the world observer sets data-world after.
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${familjen.variable} ${geistMono.variable} ${fredoka.variable} ${nunito.variable} ${bricolage.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-canvas font-sans text-ink selection:bg-accent selection:text-on-accent">
+      <body className="flex min-h-full flex-col font-sans selection:bg-pop selection:text-on-pop">
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <a
           href="#main"
@@ -58,6 +54,8 @@ export default function RootLayout({
         >
           Skip to content
         </a>
+        <LiquidLens />
+        <GlassPointer />
         {children}
       </body>
     </html>
