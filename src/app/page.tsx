@@ -8,6 +8,7 @@ import ChapterKaapeh from "@/app/_components/ChapterKaapeh";
 import ChapterNativa from "@/app/_components/ChapterNativa";
 import ChapterTally from "@/app/_components/ChapterTally";
 import ChapterStride from "@/app/_components/ChapterStride";
+import ChapterCodeher from "@/app/_components/ChapterCodeher";
 import Toolbox from "@/app/_components/Toolbox";
 import Experience from "@/app/_components/Experience";
 import Contact from "@/app/_components/Contact";
@@ -25,6 +26,7 @@ export default function Home() {
           <ChapterNativa />
           <ChapterTally />
           <ChapterStride />
+          <ChapterCodeher />
         </div>
         <Toolbox />
         <Experience />

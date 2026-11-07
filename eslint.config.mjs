@@ -6,6 +6,11 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   // Override default ignores of eslint-config-next.
+  // CODEHER's interpreter, kept as is. Its `useVar` isn't a React hook.
+  {
+    files: ["src/app/_lib/pseudo/**"],
+    rules: { "react-hooks/rules-of-hooks": "off" },
+  },
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",

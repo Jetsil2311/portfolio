@@ -3,18 +3,20 @@
 
 export const LOCATION = "Estado de México, México";
 
-export type WorldId = "bk" | "nativa" | "tally" | "stride";
+export type WorldId = "bk" | "nativa" | "tally" | "stride" | "codeher";
 
 export const REPOS = {
   bk: "https://github.com/Jetsil2311/bk-menu-app",
   tally: "https://github.com/Jetsil2311/tally-app",
   stride: "https://github.com/Jetsil2311/stride",
+  codeher: "https://github.com/Jetsil2311/codeher",
 };
 
 export const LIVE = {
   bk: "https://bubblekaapeh.vercel.app/",
   nativa: "https://nativa-menu.vercel.app/",
   tally: "https://t-ally.vercel.app/",
+  codeher: "https://codeher-fawn.vercel.app/",
 };
 
 export const worlds: {
@@ -56,6 +58,14 @@ export const worlds: {
     image: "/work/stride-walk.webp",
     alt: "Stride iOS app during a walk, with the route on a dark map",
     position: "object-center",
+  },
+  {
+    id: "codeher",
+    name: "CODEHER",
+    line: "A programming language and platform for girls learning to code.",
+    image: "/work/ch-phone.webp",
+    alt: "CODEHER home page on a phone, with a program in Spanish pseudocode",
+    position: "object-bottom",
   },
 ];
 
@@ -110,6 +120,16 @@ return new Response(upstream.body, {
     code: `export function calculateAreaScore<
   T extends Pick<Report, "impact" | "timestamp" | "coordinate">
 >(reports: T[]): number`,
+  },
+  {
+    name: "Interpreters",
+    where: "CODEHER",
+    did: "Wrote a lexer, parser and interpreter for Spanish pseudocode. The interpreter is a generator, so one design gives run, pause, step and waiting for input.",
+    file: "codeher/packages/grader/src/pseudo/interpreter.ts",
+    code: `export type Yielded =
+  | { kind: "step"; line: number }
+  | { kind: "input"; line: number; name: string };
+type Gen<T> = Generator<Yielded, T, string | undefined>;`,
   },
   {
     name: "React Native",
@@ -185,7 +205,7 @@ await device.transferOut(ep.endpointNumber, data)`,
   },
 ];
 
-export const alsoUsed = ["JavaScript", "Express", "PostgreSQL", "MongoDB", "MySQL", "Docker", "Mapbox", "Stripe", "Cloudinary", "REST APIs", "Git"];
+export const alsoUsed = ["JavaScript", "Express", "PostgreSQL", "MongoDB", "MySQL", "Docker", "Mapbox", "Stripe", "Cloudinary", "Pyodide", "CodeMirror", "next-intl", "MCP", "REST APIs", "Git"];
 
 export const experience = {
   role: "Fullstack Developer",

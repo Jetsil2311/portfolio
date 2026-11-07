@@ -48,7 +48,7 @@ export default function ChapterStride() {
               width={776}
               height={1532}
               sizes="20vw"
-              className="mx-auto h-auto w-full max-w-[calc(70dvh*776/1532)] lg:mt-24"
+              className="mx-auto h-auto w-full max-w-[calc(70dvh*776/1532)] rounded-2xl lg:mt-24"
             />
           </div>
           <div className="lg:col-span-9">

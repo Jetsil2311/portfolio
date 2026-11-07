@@ -103,6 +103,16 @@
   --on-pop: #16060b;
 }
 
+/* CODEHER: --color-violet-800, ink and pink from its globals.css */
+:root[data-world="codeher"] {
+  --canvas: #5f33a3;
+  --ink: #ffffff;
+  --muted: #e7dcf7;
+  --line: #ffffff33;
+  --pop: #f15bb5;
+  --on-pop: #1b1030;
+}
+
 @theme inline {
   --color-canvas: var(--canvas);
   --color-ink: var(--ink);
@@ -122,6 +132,9 @@
   --font-bk-body: var(--font-nunito);
   --font-nat: Georgia, "Times New Roman", serif;
   --font-tally: var(--font-bricolage);
+  --font-ch: var(--font-montserrat);
+  --font-ch-accent: var(--font-fraunces), Georgia, serif;
+  --font-ch-mono: var(--font-jetbrains), monospace;
   --font-stride: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", var(--font-familjen), sans-serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -256,7 +269,7 @@
 
 /* Light and dark only apply to the page's own sections. Inside a project the
    brand decides, so the switch steps back instead of appearing to do nothing. */
-:root:is([data-world="bk"], [data-world="nativa"], [data-world="tally"], [data-world="stride"]) .theme-toggle {
+:root:is([data-world="bk"], [data-world="nativa"], [data-world="tally"], [data-world="stride"], [data-world="codeher"]) .theme-toggle {
   opacity: 0.35;
   pointer-events: none;
 }
@@ -394,6 +407,18 @@ body {
   --rim-hi: #ffffff8c;
   --rim-lo: #ffffff1f;
   --sheen: #ffffff1c;
+}
+
+:root[data-world="codeher"] {
+  --glass-fill: #ffffff1f;
+  --glow: #f15bb599;
+  --shade: #1a103680;
+  --wall-a: #f15bb54d;
+  --wall-b: #1a1036b3;
+  --wall-c: #9b5de5b3;
+  --rim-hi: #ffffffa6;
+  --rim-lo: #ffffff26;
+  --sheen: #ffffff26;
 }
 
 /* The wallpaper. Fixed and on its own layer, so scrolling never repaints it. */

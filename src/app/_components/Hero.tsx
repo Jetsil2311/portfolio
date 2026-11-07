@@ -18,6 +18,7 @@ const NAME_STYLE: Record<WorldId, string> = {
   nativa: "font-nat font-bold italic",
   tally: "font-tally font-bold tracking-[-0.045em]",
   stride: "font-stride font-semibold tracking-[-0.025em]",
+  codeher: "font-ch font-extrabold tracking-[-0.04em]",
 };
 
 const STEP_MS = 3400;
@@ -160,7 +161,7 @@ export default function Hero() {
               <span className="font-medium text-ink">{current.name}.</span> {current.line}
             </>
           ) : (
-            "Four products, four identities, one person."
+            "Five products, five identities, one person."
           )}
         </p>
       </div>
